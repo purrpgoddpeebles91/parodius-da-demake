@@ -3,24 +3,24 @@
 }
 
 :root {
-  --bg-1: #090b18;
-  --bg-2: #101932;
-  --panel: rgba(9, 16, 35, 0.72);
-  --panel-border: rgba(150, 190, 255, 0.45);
-  --text: #ebf7ff;
-  --muted: #a7b9d8;
+  --bg-1: #070d19;
+  --bg-2: #111c34;
+  --panel: rgba(7, 12, 24, 0.72);
+  --panel-border: rgba(170, 210, 255, 0.38);
+  --text: #edf9ff;
+  --muted: #9db7d9;
   --pink: #ff6ad5;
-  --cyan: #76f7ff;
+  --cyan: #79f6ff;
   --gold: #ffd166;
-  --lime: #8ef7a8;
-  --violet: #c798ff;
+  --lime: #90f7b0;
+  --violet: #d0a6ff;
+  --danger: #ff7a7a;
 }
 
 html, body {
   margin: 0;
   min-height: 100%;
-  background:
-    radial-gradient(circle at top, rgba(51, 92, 184, 0.22), transparent 30%),
+  background: radial-gradient(circle at top, rgba(52, 88, 170, 0.34), transparent 28%),
     linear-gradient(180deg, var(--bg-1), var(--bg-2));
   color: var(--text);
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -37,13 +37,12 @@ body {
   position: relative;
   width: min(96vw, 1040px);
   aspect-ratio: 16 / 9;
-  border: 2px solid rgba(146, 183, 255, 0.35);
+  border: 2px solid rgba(142, 184, 255, 0.34);
   border-radius: 18px;
-  background: #030916;
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.55),
-    inset 0 0 0 1px rgba(152, 177, 255, 0.15),
-    0 0 48px rgba(91, 181, 255, 0.24);
+  background: linear-gradient(180deg, #050d1f 0%, #0a1830 100%);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.54),
+    inset 0 0 0 1px rgba(169, 192, 255, 0.12),
+    0 0 54px rgba(90, 180, 255, 0.22);
   overflow: hidden;
 }
 
@@ -51,7 +50,7 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-  background: linear-gradient(180deg, #08172d 0%, #0d1a2e 100%);
+  background: linear-gradient(180deg, #091425 0%, #0e1d30 100%);
 }
 
 .hud-panel {
@@ -62,7 +61,7 @@ body {
   align-items: center;
   padding: 16px 18px 0;
   pointer-events: none;
-  z-index: 10;
+  z-index: 12;
 }
 
 .brand {
@@ -70,12 +69,12 @@ body {
   flex-direction: column;
   gap: 2px;
   letter-spacing: 0.14em;
-  text-shadow: 0 0 14px rgba(118, 247, 255, 0.7);
+  text-shadow: 0 0 14px rgba(121, 246, 255, 0.7);
 }
 
 .brand-kicker {
   font-size: 11px;
-  opacity: 0.72;
+  opacity: 0.7;
 }
 
 .brand-name {
@@ -85,12 +84,14 @@ body {
 
 .stats {
   display: flex;
-  gap: 18px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
   padding: 10px 14px;
   border: 1px solid var(--panel-border);
   border-radius: 999px;
-  background: rgba(6, 12, 22, 0.42);
-  backdrop-filter: blur(6px);
+  background: rgba(8, 14, 27, 0.42);
+  backdrop-filter: blur(8px);
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -106,9 +107,9 @@ body {
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(4, 8, 16, 0.46);
+  background: rgba(5, 10, 18, 0.42);
   backdrop-filter: blur(8px);
-  z-index: 19;
+  z-index: 20;
   transition: opacity 0.2s ease;
 }
 
@@ -123,37 +124,37 @@ body {
 }
 
 .panel {
-  width: min(72%, 520px);
+  width: min(74%, 560px);
   padding: 28px 24px 22px;
-  border: 1px solid rgba(143, 200, 255, 0.38);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(14, 23, 35, 0.92), rgba(8, 12, 22, 0.9));
-  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.44);
+  border: 1px solid rgba(151, 209, 255, 0.42);
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(10, 18, 29, 0.93), rgba(8, 13, 24, 0.92));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.44);
   text-align: center;
 }
 
 .eyebrow {
-  font-size: 12px;
+  margin: 0 0 12px;
+  font-size: 11px;
   letter-spacing: 0.24em;
   color: var(--cyan);
-  margin: 0 0 12px;
   text-transform: uppercase;
 }
 
 h1, h2 {
   margin: 0 0 18px;
   line-height: 0.96;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  text-shadow: 0 0 24px rgba(118, 247, 255, 0.5);
+  text-shadow: 0 0 26px rgba(121, 246, 255, 0.46);
 }
 
 h1 {
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: clamp(2rem, 4vw, 4rem);
 }
 
 h2 {
-  font-size: clamp(1.6rem, 3vw, 3rem);
+  font-size: clamp(1.7rem, 3vw, 3rem);
 }
 
 .controls {
@@ -161,40 +162,40 @@ h2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin: 0 auto 20px;
-  max-width: 420px;
+  max-width: 440px;
   font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-#finalScoreText {
-  margin: 8px 0 20px;
-  font-size: 14px;
   color: var(--muted);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
+#finalScoreText {
+  margin: 10px 0 20px;
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 button {
   appearance: none;
-  border: 1px solid rgba(118, 247, 255, 0.68);
-  background: linear-gradient(180deg, rgba(118, 247, 255, 0.18), rgba(118, 247, 255, 0.06));
+  border: 1px solid rgba(121, 246, 255, 0.72);
+  background: linear-gradient(180deg, rgba(121, 246, 255, 0.18), rgba(121, 246, 255, 0.06));
   color: var(--text);
   border-radius: 999px;
-  padding: 12px 24px;
+  padding: 12px 26px;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 0 18px rgba(118, 247, 255, 0.26);
+  box-shadow: 0 0 18px rgba(121, 246, 255, 0.24);
 }
 
 button:hover {
   transform: translateY(-1px) scale(1.01);
-  box-shadow: 0 0 24px rgba(118, 247, 255, 0.42);
+  box-shadow: 0 0 26px rgba(121, 246, 255, 0.42);
 }
 
 button:active {
@@ -210,13 +211,13 @@ button:active {
   }
 
   .hud-panel {
-    padding-top: 12px;
+    padding: 12px 10px 0;
   }
 
   .stats {
+    font-size: 10px;
     gap: 8px;
     padding: 8px 10px;
-    font-size: 10px;
   }
 
   .controls {
