@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><title>Parodius fan prototype</title><style>body{margin:0;background:#111126;color:white;text-align:center;font:16px monospace}canvas{width:min(96vw,640px);image-rendering:pixelated;touch-action:none;border:2px solid #876}button{padding:14px;background:#435;color:white;border:1px solid #caf}p{padding:0 12px}</style><h2>PARODIUS FAN PROTOTYPE</h2><canvas id="screen" width="256" height="192"></canvas><p>Drag to move. Automatic fire. Keyboard: arrow keys.</p><button id="restart">Start / Restart</button><p>Early HTML5 foundation. Not a PICO-8 export.<br>Unofficial; not affiliated with Konami.</p><script>
+'use strict';
+const c=document.getElementById('screen'),g=c.getContext('2d'),keys={};
+let p,shots,enemies,score,life,tick,over,last=0,acc=0,seed=1;
+function reset(){p={x:32,y:96};shots=[];enemies=[];score=0;life=3;tick=0;over=false;acc=0;seed=1;}
+function random(){seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;}
+function move(e){const r=c.getBoundingClientRect();p.x=Math.max(8,Math.min(248,(e.clientX-r.left)*256/r.width));p.y=Math.max(22,Math.min(184,(e.clientY-r.top)*192/r.height));}
+c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);move(e);});
+c.addEventListener('pointermove',e=>{if(c.hasPointerCapture(e.pointerId))move(e);});
+addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))e.preventDefault();keys[e.key]=true;});
+addEventListener('keyup',e=>keys[e.key]=false);addEventListener('blur',()=>{for(const k in keys)keys[k]=false;});
+document.getElementById('restart').onclick=reset;
+function step(){if(over)return;tick++;p.x=Math.max(8,Math.min(248,p.x+2*((keys.ArrowRight?1:0)-(keys.ArrowLeft?1:0))));p.y=Math.max(22,Math.min(184,p.y+2*((keys.ArrowDown?1:0)-(keys.ArrowUp?1:0))));if(tick%8===0)shots.push({x:p.x+8,y:p.y});if(tick%35===0)enemies.push({x:264,y:24+random()*152,phase:random()*6,hp:2});for(const s of shots)s.x+=4;for(const e of enemies){e.x-=1+Math.min(1,score/5000);e.y+=Math.sin(tick/15+e.phase)*.6;for(const s of shots){if(s.x<260&&e.hp>0&&Math.abs(s.x-e.x)<9&&Math.abs(s.y-e.y)<8){e.hp--;s.x=999;if(e.hp===0)score+=100;}}if(e.hp>0&&Math.abs(p.x-e.x)<10&&Math.abs(p.y-e.y)<9){e.hp=0;life--;if(life<=0)over=true;}}shots=shots.filter(s=>s.x<264);enemies=enemies.filter(e=>e.x> -16&&e.hp>0);}
+function draw(){g.fillStyle='#111126';g.fillRect(0,0,256,192);g.fillStyle='#6a6484';for(let i=0;i<30;i++)g.fillRect(((i*83-tick*.5)%256+256)%256,20+(i*47)%172,1,1);g.fillStyle='#9ee';g.beginPath();g.moveTo(p.x+9,p.y);g.lineTo(p.x-7,p.y-6);g.lineTo(p.x-3,p.y);g.lineTo(p.x-7,p.y+6);g.closePath();g.fill();g.fillStyle='#ffdb59';for(const s of shots)g.fillRect(s.x,s.y-1,5,2);for(const e of enemies){g.fillStyle='#ff79a6';g.beginPath();g.arc(e.x,e.y,7,0,Math.PI*2);g.fill();g.fillStyle='white';g.fillRect(e.x-4,e.y-3,3,3);}g.fillStyle='white';g.font='9px monospace';g.fillText('SCORE '+score+'  LIFE '+life,5,12);if(over){g.fillStyle='#111126';g.fillRect(30,76,196,40);g.fillStyle='white';g.fillText('GAME OVER - TAP RESTART',43,99);}}
+function frame(now){if(last)acc+=Math.min(100,now-last);last=now;while(acc>=1000/60){step();acc-=1000/60;}draw();requestAnimationFrame(frame);}reset();requestAnimationFrame(frame);
+</script></html>
