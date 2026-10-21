@@ -34,8 +34,11 @@ const state = {
   score: 0,
   wave: 1,
   combo: 1,
+  comboTimer: 0,
   screenShake: 0,
   messageTimer: 0,
+  nextWaveTimer: 0,
+  bossMode: false,
   stars: [],
   particles: [],
   bullets: [],
@@ -43,8 +46,6 @@ const state = {
   enemies: [],
   pickups: [],
   player: null,
-  nextSpawnAt: 0.5,
-  bossMode: false,
 };
 
 function clamp(value, min, max) {
@@ -100,7 +101,6 @@ function resetPlayer() {
     shield: 0,
     invuln: 0,
     weapon: 0,
-    boostPower: 0,
   };
 }
 
@@ -159,13 +159,13 @@ function spawnEnemy(type = 'scout', x = canvas.width + 30, y = rand(50, canvas.h
     speed = 68 + state.wave * 6;
     drift = 0.7;
     radius = 20;
-    shoot = rand(1.2, 2.2);
+    shoot = rand(1.2, 2.3);
     scoreValue = 220;
   } else if (type === 'spinner') {
     hp = 3;
     speed = 80 + state.wave * 7;
     radius = 18;
-    shoot = rand(1.1, 1.7);
+    shoot = rand(1.0, 1.7);
     scoreValue = 280;
   } else if (type === 'boss') {
     hp = 26 + state.wave * 9;
@@ -189,24 +189,24 @@ function spawnEnemy(type = 'scout', x = canvas.width + 30, y = rand(50, canvas.h
     shootCooldown: shoot,
     pulse: Math.random() * Math.PI * 2,
     hitFlash: 0,
+    phase: 0,
   });
 }
 
 function spawnWave() {
   const count = 4 + state.wave * 2;
-
   for (let i = 0; i < count; i += 1) {
-    const lot = Math.random();
+    const roll = Math.random();
     let kind = 'scout';
-    if (lot > 0.72 && state.wave > 1) kind = 'zigzag';
-    if (lot > 0.88 && state.wave > 2) kind = 'tank';
-    if (lot > 0.96 && state.wave > 3) kind = 'spinner';
-
+    if (roll > 0.72 && state.wave > 1) kind = 'zigzag';
+    if (roll > 0.88 && state.wave > 2) kind = 'tank';
+    if (roll > 0.96 && state.wave > 3) kind = 'spinner';
     spawnEnemy(kind, canvas.width + rand(30, 180), rand(60, canvas.height - 60));
   }
 }
 
 function spawnBoss() {
+  state.bossMode = true;
   spawnEnemy('boss', canvas.width + 80, canvas.height * 0.5);
 }
 
@@ -214,15 +214,16 @@ function resetGame() {
   state.score = 0;
   state.wave = 1;
   state.combo = 1;
+  state.comboTimer = 0;
   state.screenShake = 0;
-  state.messageTimer = 0;
+  state.messageTimer = 1.2;
+  state.nextWaveTimer = 1.4;
+  state.bossMode = false;
   state.bullets = [];
   state.enemyBullets = [];
   state.enemies = [];
   state.pickups = [];
   state.particles = [];
-  state.nextSpawnAt = 0.5;
-  state.bossMode = false;
   resetPlayer();
   initStars();
   spawnWave();
@@ -241,26 +242,26 @@ function createPlayerShot() {
   if (!p || p.fireCooldown > 0) return;
   p.fireCooldown = p.shootRate;
 
-  const v = 560;
-  const colorPool = ['#76f7ff', '#ffd166', '#ff8ce1', '#9afcb4'];
+  const velocity = 560;
+  const colors = ['#76f7ff', '#ffd166', '#ff8ce1', '#9afcb4'];
 
   if (p.weapon === 0) {
-    state.bullets.push({ x: p.x + 22, y: p.y, vx: v, vy: 0, radius: 5, color: colorPool[0], damage: 1 });
+    state.bullets.push({ x: p.x + 22, y: p.y, vx: velocity, vy: 0, radius: 5, color: colors[0], damage: 1 });
   } else if (p.weapon === 1) {
-    state.bullets.push({ x: p.x + 22, y: p.y - 7, vx: v, vy: -30, radius: 4, color: colorPool[1], damage: 1 });
-    state.bullets.push({ x: p.x + 22, y: p.y + 7, vx: v, vy: 30, radius: 4, color: colorPool[1], damage: 1 });
+    state.bullets.push({ x: p.x + 22, y: p.y - 7, vx: velocity, vy: -30, radius: 4, color: colors[1], damage: 1 });
+    state.bullets.push({ x: p.x + 22, y: p.y + 7, vx: velocity, vy: 30, radius: 4, color: colors[1], damage: 1 });
   } else if (p.weapon === 2) {
-    state.bullets.push({ x: p.x + 22, y: p.y, vx: v, vy: 0, radius: 7, color: colorPool[2], damage: 2 });
-    state.bullets.push({ x: p.x + 22, y: p.y - 24, vx: v * 0.8, vy: -75, radius: 4.5, color: colorPool[2], damage: 1.2 });
-    state.bullets.push({ x: p.x + 22, y: p.y + 24, vx: v * 0.8, vy: 75, radius: 4.5, color: colorPool[2], damage: 1.2 });
+    state.bullets.push({ x: p.x + 22, y: p.y, vx: velocity, vy: 0, radius: 7, color: colors[2], damage: 2 });
+    state.bullets.push({ x: p.x + 22, y: p.y - 24, vx: velocity * 0.8, vy: -75, radius: 4.5, color: colors[2], damage: 1.2 });
+    state.bullets.push({ x: p.x + 22, y: p.y + 24, vx: velocity * 0.8, vy: 75, radius: 4.5, color: colors[2], damage: 1.2 });
   } else {
     const spread = [-0.8, -0.35, 0, 0.35, 0.8];
     for (const angle of spread) {
       state.bullets.push({
         x: p.x + 22,
         y: p.y,
-        vx: Math.cos(angle) * v,
-        vy: Math.sin(angle) * v,
+        vx: Math.cos(angle) * velocity,
+        vy: Math.sin(angle) * velocity,
         radius: 5,
         color: '#ff6ad5',
         damage: 1.75,
@@ -271,21 +272,37 @@ function createPlayerShot() {
   AudioSystem.playShoot();
 }
 
-function enemyFire(enemy) {
+function enemyFire(enemy, spread = 1) {
   if (!state.player) return;
   const dx = state.player.x - enemy.x;
   const dy = state.player.y - enemy.y;
   const dist = Math.hypot(dx, dy) || 1;
   const speed = 220 + state.wave * 10;
 
-  state.enemyBullets.push({
-    x: enemy.x,
-    y: enemy.y,
-    vx: (dx / dist) * speed,
-    vy: (dy / dist) * speed,
-    radius: enemy.type === 'boss' ? 8 : 5,
-    color: enemy.type === 'boss' ? '#ff9ed4' : '#ff9477',
-  });
+  if (spread === 1) {
+    state.enemyBullets.push({
+      x: enemy.x,
+      y: enemy.y,
+      vx: (dx / dist) * speed,
+      vy: (dy / dist) * speed,
+      radius: enemy.type === 'boss' ? 8 : 5,
+      color: enemy.type === 'boss' ? '#ff9ed4' : '#ff9477',
+    });
+    return;
+  }
+
+  const startAngle = -Math.PI / 2;
+  for (let i = 0; i < spread; i += 1) {
+    const angle = startAngle + (i / (spread - 1)) * Math.PI;
+    state.enemyBullets.push({
+      x: enemy.x,
+      y: enemy.y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      radius: enemy.type === 'boss' ? 7 : 5,
+      color: '#ff9ed4',
+    });
+  }
 }
 
 function applyDamage(amount = 1) {
@@ -311,6 +328,7 @@ function applyDamage(amount = 1) {
 }
 
 function gainPickup(kind) {
+  if (!state.player) return;
   if (kind === 'weapon') {
     state.player.weapon = Math.min(3, state.player.weapon + 1);
   } else if (kind === 'shield') {
@@ -392,12 +410,14 @@ function updateEnemies(dt) {
     enemy.pulse += dt * 2.5;
 
     if (enemy.type === 'boss') {
-      enemy.x -= 28 * dt;
-      enemy.y += Math.sin(enemy.pulse + enemy.x * 0.02) * 110 * dt;
+      const phase = enemy.hp < enemy.maxHp * 0.5 ? 1 : 0;
+      enemy.phase = phase;
+      enemy.x -= (phase === 1 ? 34 : 26) * dt;
+      enemy.y += Math.sin(enemy.pulse + enemy.phase * 2) * (phase === 1 ? 140 : 90) * dt;
       enemy.shootCooldown -= dt;
       if (enemy.shootCooldown <= 0) {
-        enemyFire(enemy);
-        enemy.shootCooldown = 0.85 + Math.random() * 0.35;
+        enemyFire(enemy, phase === 1 ? 5 : 3);
+        enemy.shootCooldown = phase === 1 ? 0.5 + Math.random() * 0.35 : 0.9 + Math.random() * 0.4;
       }
     } else {
       enemy.x += enemy.vx * dt;
@@ -407,11 +427,11 @@ function updateEnemies(dt) {
       if (enemy.type === 'spinner' || enemy.type === 'tank') {
         enemy.shootCooldown -= dt;
         if (enemy.shootCooldown <= 0) {
-          enemyFire(enemy);
+          enemyFire(enemy, enemy.type === 'spinner' ? 3 : 1);
           enemy.shootCooldown = (enemy.type === 'spinner') ? rand(1.0, 1.7) : rand(1.6, 2.6);
         }
       } else if (Math.random() < 0.009) {
-        enemyFire(enemy);
+        enemyFire(enemy, 1);
       }
     }
 
@@ -451,6 +471,7 @@ function handleCollisions() {
         if (enemy.hp <= 0) {
           state.score += enemy.scoreValue * state.combo;
           state.combo = Math.min(9, state.combo + 1);
+          state.comboTimer = 2.2;
           addParticles(enemy.x, enemy.y, enemy.type === 'boss' ? '#ff6ad5' : '#ffffff', enemy.type === 'boss' ? 44 : 18, 3.2);
           AudioSystem.playExplode();
 
@@ -458,6 +479,7 @@ function handleCollisions() {
             state.bossMode = false;
             state.wave += 1;
             state.messageTimer = 1.4;
+            state.nextWaveTimer = 1.4;
           }
 
           if (Math.random() < 0.2) {
@@ -494,7 +516,6 @@ function handleCollisions() {
     if (dist < pickup.radius + p.radius) {
       gainPickup(pickup.kind);
       state.pickups.splice(i, 1);
-      AudioSystem.playPickup();
     }
   }
 }
@@ -515,18 +536,10 @@ function updatePickups(dt) {
 function updateWaveSystem(dt) {
   if (state.mode !== 'game') return;
 
-  if (!state.bossMode && state.enemies.length === 0) {
-    state.nextSpawnAt -= dt;
-    if (state.nextSpawnAt <= 0) {
-      if (state.wave % 4 === 0) {
-        state.bossMode = true;
-        spawnBoss();
-      } else {
-        spawnWave();
-      }
-      state.nextSpawnAt = state.wave % 4 === 0 ? 2.5 : 1.7;
-      state.wave = Math.max(state.wave, 1);
-      state.messageTimer = 1.2;
+  if (state.comboTimer > 0) {
+    state.comboTimer -= dt;
+    if (state.comboTimer <= 0) {
+      state.combo = 1;
     }
   }
 
@@ -538,8 +551,18 @@ function updateWaveSystem(dt) {
     state.screenShake = Math.max(0, state.screenShake - dt * 40);
   }
 
-  if (state.player && state.player.hp <= 0 && state.mode !== 'gameOver') {
-    setMode('gameOver');
+  if (!state.bossMode && state.enemies.length === 0) {
+    state.nextWaveTimer -= dt;
+    if (state.nextWaveTimer <= 0) {
+      if (state.wave % 3 === 0) {
+        spawnBoss();
+      } else {
+        state.wave += 1;
+        state.messageTimer = 1.2;
+        spawnWave();
+      }
+      state.nextWaveTimer = 1.45;
+    }
   }
 }
 
@@ -555,11 +578,21 @@ function updateGame(dt) {
   updateHud();
 }
 
+function getThemeColors() {
+  const themes = [
+    { skyTop: '#040d1d', skyMid: '#0b1b30', skyLow: '#1a0d22', accent: '#79f6ff' },
+    { skyTop: '#12151f', skyMid: '#202d4d', skyLow: '#2d1531', accent: '#ff6ad5' },
+    { skyTop: '#111917', skyMid: '#173b39', skyLow: '#2d1b2a', accent: '#90f7b0' },
+  ];
+  return themes[(state.wave - 1) % themes.length];
+}
+
 function drawBackground() {
+  const theme = getThemeColors();
   const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  bg.addColorStop(0, '#040d1d');
-  bg.addColorStop(0.45, '#0b1b30');
-  bg.addColorStop(1, '#1a0d22');
+  bg.addColorStop(0, theme.skyTop);
+  bg.addColorStop(0.45, theme.skyMid);
+  bg.addColorStop(1, theme.skyLow);
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -733,7 +766,6 @@ function drawPickups() {
       ctx.fillRect(-3, -10, 6, 20);
       ctx.fillRect(-10, -3, 20, 6);
     }
-
     ctx.restore();
   }
 }
