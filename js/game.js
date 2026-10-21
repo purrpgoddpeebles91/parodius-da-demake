@@ -58,7 +58,6 @@ function rand(min, max) {
 
 function setMode(mode) {
   state.mode = mode;
-
   if (mode === 'menu') {
     overlays.menu.classList.remove('hidden');
     overlays.menu.classList.add('visible');
@@ -117,16 +116,7 @@ function addParticles(x, y, color, count = 12, spread = 2.2) {
   for (let i = 0; i < count; i += 1) {
     const angle = Math.random() * Math.PI * 2;
     const speed = rand(30, 180) * spread;
-    state.particles.push({
-      x,
-      y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      life: rand(0.2, 0.8),
-      maxLife: rand(0.2, 0.8),
-      radius: rand(2, 5),
-      color,
-    });
+    state.particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: rand(0.2, 0.8), maxLife: rand(0.2, 0.8), radius: rand(2, 5), color });
   }
 }
 
@@ -135,62 +125,21 @@ function spawnPickup(x, y, kind = 'weapon') {
 }
 
 function spawnEnemy(type = 'scout', x = canvas.width + 30, y = rand(50, canvas.height - 50)) {
-  let hp = 1;
-  let speed = 110;
-  let drift = 0;
-  let shoot = 0;
-  let radius = 18;
-  let scoreValue = 85;
+  let hp = 1, speed = 110, drift = 0, shoot = 0, radius = 18, scoreValue = 85;
 
   if (type === 'scout') {
-    hp = 1;
-    speed = 100 + state.wave * 10;
-    drift = 0.5;
-    radius = 16;
-    scoreValue = 80;
+    hp = 1; speed = 100 + state.wave * 10; drift = 0.5; radius = 16; scoreValue = 80;
   } else if (type === 'zigzag') {
-    hp = 2;
-    speed = 90 + state.wave * 8;
-    drift = 1.1;
-    radius = 18;
-    scoreValue = 120;
+    hp = 2; speed = 90 + state.wave * 8; drift = 1.1; radius = 18; scoreValue = 120;
   } else if (type === 'tank') {
-    hp = 4;
-    speed = 68 + state.wave * 6;
-    drift = 0.7;
-    radius = 20;
-    shoot = rand(1.2, 2.3);
-    scoreValue = 220;
+    hp = 4; speed = 68 + state.wave * 6; drift = 0.7; radius = 20; shoot = rand(1.2, 2.3); scoreValue = 220;
   } else if (type === 'spinner') {
-    hp = 3;
-    speed = 80 + state.wave * 7;
-    radius = 18;
-    shoot = rand(1.0, 1.7);
-    scoreValue = 280;
+    hp = 3; speed = 80 + state.wave * 7; radius = 18; shoot = rand(1.0, 1.7); scoreValue = 280;
   } else if (type === 'boss') {
-    hp = 26 + state.wave * 9;
-    speed = 48;
-    radius = 58;
-    shoot = rand(0.8, 1.3);
-    scoreValue = 1600;
+    hp = 26 + state.wave * 9; speed = 48; radius = 58; shoot = rand(0.8, 1.3); scoreValue = 1600;
   }
 
-  state.enemies.push({
-    type,
-    x,
-    y,
-    vx: -speed,
-    vy: 0,
-    hp,
-    maxHp: hp,
-    radius,
-    scoreValue,
-    drift,
-    shootCooldown: shoot,
-    pulse: Math.random() * Math.PI * 2,
-    hitFlash: 0,
-    phase: 0,
-  });
+  state.enemies.push({ type, x, y, vx: -speed, vy: 0, hp, maxHp: hp, radius, scoreValue, drift, shootCooldown: shoot, pulse: Math.random() * Math.PI * 2, hitFlash: 0, phase: 0 });
 }
 
 function spawnWave() {
@@ -257,15 +206,7 @@ function createPlayerShot() {
   } else {
     const spread = [-0.8, -0.35, 0, 0.35, 0.8];
     for (const angle of spread) {
-      state.bullets.push({
-        x: p.x + 22,
-        y: p.y,
-        vx: Math.cos(angle) * velocity,
-        vy: Math.sin(angle) * velocity,
-        radius: 5,
-        color: '#ff6ad5',
-        damage: 1.75,
-      });
+      state.bullets.push({ x: p.x + 22, y: p.y, vx: Math.cos(angle) * velocity, vy: Math.sin(angle) * velocity, radius: 5, color: '#ff6ad5', damage: 1.75 });
     }
   }
 
@@ -280,28 +221,14 @@ function enemyFire(enemy, spread = 1) {
   const speed = 220 + state.wave * 10;
 
   if (spread === 1) {
-    state.enemyBullets.push({
-      x: enemy.x,
-      y: enemy.y,
-      vx: (dx / dist) * speed,
-      vy: (dy / dist) * speed,
-      radius: enemy.type === 'boss' ? 8 : 5,
-      color: enemy.type === 'boss' ? '#ff9ed4' : '#ff9477',
-    });
+    state.enemyBullets.push({ x: enemy.x, y: enemy.y, vx: (dx / dist) * speed, vy: (dy / dist) * speed, radius: enemy.type === 'boss' ? 8 : 5, color: enemy.type === 'boss' ? '#ff9ed4' : '#ff9477' });
     return;
   }
 
   const startAngle = -Math.PI / 2;
   for (let i = 0; i < spread; i += 1) {
     const angle = startAngle + (i / (spread - 1)) * Math.PI;
-    state.enemyBullets.push({
-      x: enemy.x,
-      y: enemy.y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      radius: enemy.type === 'boss' ? 7 : 5,
-      color: '#ff9ed4',
-    });
+    state.enemyBullets.push({ x: enemy.x, y: enemy.y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, radius: enemy.type === 'boss' ? 7 : 5, color: '#ff9ed4' });
   }
 }
 
@@ -428,7 +355,7 @@ function updateEnemies(dt) {
         enemy.shootCooldown -= dt;
         if (enemy.shootCooldown <= 0) {
           enemyFire(enemy, enemy.type === 'spinner' ? 3 : 1);
-          enemy.shootCooldown = (enemy.type === 'spinner') ? rand(1.0, 1.7) : rand(1.6, 2.6);
+          enemy.shootCooldown = enemy.type === 'spinner' ? rand(1.0, 1.7) : rand(1.6, 2.6);
         }
       } else if (Math.random() < 0.009) {
         enemyFire(enemy, 1);
@@ -664,7 +591,6 @@ function drawPlayer() {
 
 function drawEnemy(enemy) {
   const blink = enemy.hitFlash > 0 ? '#ffffff' : null;
-
   if (enemy.type === 'scout') {
     ctx.fillStyle = blink || '#ff7f7f';
     ctx.beginPath();
