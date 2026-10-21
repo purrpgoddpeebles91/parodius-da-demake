@@ -1,32 +1,55 @@
 <!doctype html>
-<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Parodius fan playtest</title><style>body{margin:0;background:#100e25;color:#f7eaff;text-align:center;font:15px monospace}canvas{width:min(98vw,760px);image-rendering:pixelated;touch-action:none;border:1px solid #849}button,select{font:inherit;background:#42305e;color:white;border:1px solid #b8a;padding:12px;margin:4px;touch-action:manipulation}p{margin:8px}h3{margin:10px}</style><h3>PARODIUS FAN PLAYTEST • 0.2</h3><canvas id="c" width="256" height="192"></canvas><div><select id="who"><option>Vic Viper</option><option>Octopus</option><option>TwinBee</option><option>Pentarou</option></select><button id="start">Start / Restart</button><button id="upgrade">Upgrade</button><button id="pause">Pause</button></div><p>Drag anywhere on the screen to steer • automatic fire<br>Keyboard: arrows / Z upgrade / P pause</p><p>Unofficial fan prototype. Three original test stages, not original-game layouts.<br>HTML5 build, not a PICO-8 export.</p><script>
-'use strict';
-const c=document.getElementById('c'),g=c.getContext('2d'),keys={},names=['SPEED','MISSILE','DOUBLE','LASER','OPTION','SHIELD'],titles=['CANDY CURRENT','MOAI MOONLIGHT','CARNIVAL CORE'];
-let p,shots,foes,bullets,drops,sparks,boss,t,st,score,life,meter,weapon,opt,speed,shield,inv,state,paused,combo,best=0,last=0,acc=0,drag=null,audio=null;
-try{best=Number(localStorage.getItem('parodius-fan-best'))||0}catch(e){}
-function sound(n){if(!audio)return;const o=audio.createOscillator(),v=audio.createGain();o.type='square';o.frequency.value=n;v.gain.setValueAtTime(.025,audio.currentTime);v.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.09);o.connect(v);v.connect(audio.destination);o.start();o.stop(audio.currentTime+.1)}
-function reset(){p={x:25,y:96,k:document.getElementById('who').selectedIndex};shots=[];foes=[];bullets=[];drops=[];sparks=[];boss=null;t=0;st=0;score=0;life=5;meter=-1;weapon=0;opt=0;speed=0;shield=0;inv=90;combo=0;state='play';paused=false;drag=null;acc=0;document.getElementById('pause').textContent='Pause'}
-function save(){if(score>best){best=score;try{localStorage.setItem('parodius-fan-best',String(best))}catch(e){}}}
-function start(){try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();audio.resume()}catch(e){}reset();sound(440)}
-function toggle(){if(state!=='play')return;paused=!paused;document.getElementById('pause').textContent=paused?'Resume':'Pause';drag=null}
-function upgrade(){if(state!=='play'||paused||meter<0)return;if(meter===0)speed=Math.min(3,speed+1);else if(meter===4)opt=Math.min(2,opt+1);else if(meter===5)shield=3;else weapon=meter;meter=-1;sound(880)}
-document.getElementById('start').onclick=start;document.getElementById('upgrade').onclick=upgrade;document.getElementById('pause').onclick=toggle;
-function point(e){const r=c.getBoundingClientRect();return{x:(e.clientX-r.left)*256/r.width,y:(e.clientY-r.top)*192/r.height}}
-c.onpointerdown=e=>{if(state!=='play'||paused)return;drag=point(e);c.setPointerCapture(e.pointerId)};
-c.onpointermove=e=>{if(!drag||!c.hasPointerCapture(e.pointerId))return;const q=point(e);p.x+=(q.x-drag.x)*1.3;p.y+=(q.y-drag.y)*1.3;drag=q};c.onpointerup=c.onpointercancel=()=>drag=null;
-addEventListener('keydown',e=>{if(e.key.startsWith('Arrow'))e.preventDefault();if(!e.repeat){if(e.key.toLowerCase()==='z')upgrade();if(e.key.toLowerCase()==='p')toggle()}keys[e.key]=true});addEventListener('keyup',e=>keys[e.key]=false);addEventListener('blur',()=>{for(const k in keys)keys[k]=false;if(state==='play'&&!paused)toggle()});document.addEventListener('visibilitychange',()=>{if(document.hidden&&state==='play'&&!paused)toggle()});
-function burst(x,y,col){for(let i=0;i<12;i++)sparks.push({x,y,vx:Math.cos(i)*1.7,vy:Math.sin(i)*1.7,age:20,col})}
-function hurt(){if(inv)return;if(shield)shield--;else{life--;weapon=0;opt=0;combo=0;}inv=100;burst(p.x,p.y,'#fff');sound(110);if(life<=0){state='over';save()}}
-function shoot(){const add=(dy,vy=0)=>shots.push({x:p.x+8,y:p.y+dy,vx:weapon===3?6:4,vy});add(0);if(weapon===1)add(4,1.6);if(weapon===2){add(-2,-.6);if(p.k===1)add(2,.6)}if(weapon===3){add(-2);if(p.k===2)add(2)}for(let i=0;i<opt;i++)add(9+i*7,p.k===3?-.2:0)}
-function step(){if(state!=='play'||paused)return;t++;if(inv)inv--;p.x+=((keys.ArrowRight?1:0)-(keys.ArrowLeft?1:0))*(1.7+speed*.4);p.y+=((keys.ArrowDown?1:0)-(keys.ArrowUp?1:0))*(1.7+speed*.4);p.x=Math.max(8,Math.min(247,p.x));p.y=Math.max(25,Math.min(176,p.y));if(t%7===0)shoot();
-if(t<1800&&t%Math.max(22,48-st*8)===0){const n=Math.floor(t/48)%3;foes.push({x:266,y:35+(t*17%125),base:35+(t*17%125),age:0,hp:n===2?4:2,type:n})}if(t===1800){boss={x:220,y:96,hp:100+st*40,max:100+st*40,age:0};sound(150)}
-for(const e of foes){e.age++;e.x-=1+st*.2;e.y=e.base+Math.sin(e.age/18)*12;if(e.age%95===0){const a=Math.atan2(p.y-e.y,p.x-e.x);bullets.push({x:e.x,y:e.y,vx:Math.cos(a)*1.3,vy:Math.sin(a)*1.3})}if(Math.abs(e.x-p.x)<10&&Math.abs(e.y-p.y)<9){hurt();e.hp=0}}
-if(boss){boss.age++;boss.y=98+Math.sin(boss.age/45)*45;const rage=boss.hp<boss.max/2;if(boss.age%(rage?26:42)===0){for(let i=-2;i<=2;i++){const a=Math.PI+i*.23+Math.sin(boss.age/60)*.3;bullets.push({x:boss.x-12,y:boss.y,vx:Math.cos(a)*(rage?1.9:1.5),vy:Math.sin(a)*(rage?1.9:1.5)})}}if(Math.abs(p.x-boss.x)<24&&Math.abs(p.y-boss.y)<25)hurt()}
-for(const s of shots){s.x+=s.vx;s.y+=s.vy;for(const e of foes){if(e.hp>0&&s.x<270&&Math.abs(s.x-e.x)<10&&Math.abs(s.y-e.y)<9){e.hp--;s.x=999;if(e.hp===0){score+=100+Math.min(500,combo*10);combo++;burst(e.x,e.y,'#ff9');if(combo%3===0)drops.push({x:e.x,y:e.y,bell:combo%9===0})}}}if(boss&&s.x<270&&Math.abs(s.x-boss.x)<23&&Math.abs(s.y-boss.y)<25){s.x=999;boss.hp--;if(boss.hp<=0){burst(boss.x,boss.y,'#faf');boss=null;score+=3000;save();st++;bullets=[];foes=[];drops=[];t=0;inv=100;sound(660);if(st===3){state='win';save()}}}}
-for(const b of bullets){b.x+=b.vx;b.y+=b.vy;if(Math.abs(b.x-p.x)<4&&Math.abs(b.y-p.y)<4){hurt();b.x=-99}}for(const d of drops){d.x-=.8;if(Math.abs(d.x-p.x)<10&&Math.abs(d.y-p.y)<10){if(d.bell){score+=1000;bullets=[];shield=Math.min(3,shield+1)}else meter=(meter+1)%6;d.x=-99;sound(780)}}
-for(const s of sparks){s.x+=s.vx;s.y+=s.vy;s.age--}shots=shots.filter(s=>s.x<275&&s.y>10&&s.y<195);foes=foes.filter(e=>e.hp>0&&e.x> -15);bullets=bullets.filter(b=>b.x> -10&&b.x<270&&b.y>15&&b.y<200);drops=drops.filter(d=>d.x> -10);sparks=sparks.filter(s=>s.age>0)}
-function text(s,x,y,col='#fff'){g.fillStyle=col;g.font='8px monospace';g.fillText(s,x,y)}
-function draw(){g.fillStyle=['#18122d','#101f35','#281333'][Math.min(st,2)];g.fillRect(0,0,256,192);for(let i=0;i<40;i++){g.fillStyle=i%2?'#59506e':'#aaa';g.fillRect(((i*71-t*(i%2?.25:.5))%256+256)%256,23+i*43%152,1,1)}for(let i=0;i<5;i++){g.fillStyle=['#492447','#234659','#4c2859'][Math.min(st,2)];g.beginPath();g.arc(((i*68-t*.2)%330+330)%330-25,176,25+(i%2)*12,Math.PI,0);g.fill()}for(const d of drops){g.fillStyle=d.bell?'#8f8':'#ffb53e';g.fillRect(d.x-3,d.y-3,7,7)}for(const e of foes){g.fillStyle=['#ff89b5','#b2f77c','#bca4ff'][e.type];g.beginPath();g.arc(e.x,e.y,7+e.type,0,7);g.fill();g.fillStyle='white';g.fillRect(e.x-4,e.y-3,3,3)}if(boss){g.fillStyle='#f79ac8';g.beginPath();g.arc(boss.x,boss.y,23,0,7);g.fill();g.fillStyle='white';g.fillRect(boss.x-15,boss.y-9,8,7);g.fillRect(boss.x+4,boss.y-9,8,7);g.fillStyle='#302040';g.fillRect(boss.x-11,boss.y+8,21,4);g.fillStyle='#ff8';g.fillRect(60,20,136*boss.hp/boss.max,3)}
-if(!inv||inv%8<4){g.fillStyle=['#9ee','#ff99c8','#ffe779','#adc6ff'][p.k];if(p.k===0){g.beginPath();g.moveTo(p.x+9,p.y);g.lineTo(p.x-7,p.y-7);g.lineTo(p.x-3,p.y);g.lineTo(p.x-7,p.y+7);g.closePath();g.fill()}else{g.beginPath();g.arc(p.x,p.y,7,0,7);g.fill();g.fillStyle='white';g.fillRect(p.x+1,p.y-3,4,3)}if(shield){g.strokeStyle='#8ff';g.beginPath();g.arc(p.x,p.y,11,0,7);g.stroke()}}g.fillStyle=weapon===3?'#8ff':'#ffe473';for(const s of shots)g.fillRect(s.x,s.y-1,weapon===3?14:5,2);g.fillStyle='#ff799f';for(const b of bullets){g.beginPath();g.arc(b.x,b.y,2.5,0,7);g.fill()}for(const s of sparks){g.fillStyle=s.col;g.fillRect(s.x,s.y,2,2)}g.fillStyle='#100d20';g.fillRect(0,0,256,17);g.fillRect(0,180,256,12);text('SCORE '+score+'  LIFE '+life+'  HI '+best,3,11);for(let i=0;i<6;i++)text(names[i],i*42+2,189,i===meter?'#ffed79':'#81778c');if(t<150&&state==='play')text('STAGE '+(st+1)+' '+titles[Math.min(st,2)],38,42);if(paused||state!=='play'){g.fillStyle='#171226ee';g.fillRect(16,64,224,59);text(state==='title'?'SELECT PILOT AND PRESS START':paused?'PAUSED':state==='win'?'TEST CAMPAIGN CLEAR!':'GAME OVER',28,86);text('HIGH SCORE '+best,65,108)}}
-function frame(now){if(last)acc+=Math.min(100,now-last);last=now;while(acc>=1000/60){step();acc-=1000/60}draw();requestAnimationFrame(frame)}reset();state='title';requestAnimationFrame(frame);
-</script></html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Parodius Da! Demake - Neon Drift</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="game-shell">
+      <div class="hud-panel" id="hud">
+        <div class="brand">
+          <span class="brand-kicker">PARODIUS DA!</span>
+          <span class="brand-name">NEON DRIFT</span>
+        </div>
+        <div class="stats">
+          <span>Score <strong id="score">0</strong></span>
+          <span>Wave <strong id="wave">1</strong></span>
+          <span>Lives <strong id="lives">3</strong></span>
+          <span>Weapon <strong id="weapon">RIFLE</strong></span>
+        </div>
+      </div>
+
+      <canvas id="game" width="960" height="540" aria-label="Parodius demake game canvas"></canvas>
+
+      <div class="overlay visible" id="menuOverlay">
+        <div class="panel">
+          <p class="eyebrow">UNOFFICIAL FAN PLAYTEST</p>
+          <h1>PARODIUS DA!<br />NEON DRIFT</h1>
+          <div class="controls">
+            <span>Move: WASD / Arrow Keys</span>
+            <span>Fire: Space / Z</span>
+            <span>Upgrade: Shift / X</span>
+            <span>Pause: P</span>
+          </div>
+          <button id="startButton" type="button">START GAME</button>
+        </div>
+      </div>
+
+      <div class="overlay hidden" id="gameOverOverlay">
+        <div class="panel">
+          <p class="eyebrow">MISSION REPORT</p>
+          <h2>GAME OVER</h2>
+          <p id="finalScoreText">Final Score: 0</p>
+          <button id="restartButton" type="button">RETRY</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/sprites.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/game.js"></script>
+  </body>
+</html>
