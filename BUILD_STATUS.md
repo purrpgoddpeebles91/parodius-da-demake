@@ -1,9 +1,9 @@
-# Build status
+# Playtest 0.2
 
-Unofficial Parodius fan project; not affiliated with Konami.
+Unofficial fan project, not affiliated with Konami. HTML5 source has been expanded with four pilot selections, relative touch movement, simplified six-slot upgrades, score chains, bonus drops, three original test rounds, placeholder two-phase bosses, effects, sound, pause and local high scores. This is not a faithful full recreation or a PICO-8 export.
 
-This commit contains an initial standalone HTML5 shooter foundation only, with pointer movement, keyboard movement, automatic shooting, simple enemies, collisions, lives, scoring and restart. It has not been browser-play-tested. It is not a faithful recreation, finished game, PICO-8 export, or validated cartridge. Original game graphics, music and ROM data are not included.
+Validation: Node JavaScript syntax check passed. Mock-DOM logic tests passed for upgrade selection, shield damage, three boss transitions, victory, game over and pause. No actual browser, iPhone touch, audio or rendering playtest has been performed.
 
-Open index.html in a browser or host it as a static website. Uploading source does not enable GitHub Pages. No external libraries or account credentials are included.
+PICO-8 cartridge candidate and simplified MakeCode source were generated as downloadable attachments separately; this commit does not upload them. They have not been runtime-tested.
 
-Still missing: character selection, accurate weapons and power meter, bells, original stage layouts, bosses, terrain, audio, animation sets, difficulty/rank fidelity, checkpoints and endings. PICO-8 source and genuine p8.png cartridge remain to be developed and validated. MakeCode version lives in the separate parodius-da-makecode repository.
+The Pages workflow deploys the repository root when Pages is configured for GitHub Actions and permissions allow it. A committed workflow alone is not proof of a live deployment. No itch.io or Lexaloffle release has been published.
